@@ -4,69 +4,8 @@
 ; link:       ld -s -o sparse  sparse.o
 ; run:        ./sparse
 
-%define std_in 0
-%define std_out 1
-%define sys_exit 1
-%define sys_read 3
-%define sys_write 4
-%define ws 32
-%define lf 10
-
-%define name_offset 0
-%define link_offset 4
-%define code_offset 8
-%define data_offset 12
-
-
-; Header macros 
-; parameters: label defines code space address of routine, for nasm code reference
-;             'name' defines the 32bit string constant token for Sparse code reference
-
-; For regular dictionary definitions
-%define dlink 0              ; last dictionary header in data space
-%macro def 2                 ; def label,'name'
-  SECTION .data
-  %%link  dd %2, dlink, %1
-  %define dlink %%link
-  SECTION .text
-  %1: 
-  %define ldef $            ; last definition code address
-%endmacro
-
-; For stand alone macro definitions
-%define mlink 0               ; last macro header in data space
-%macro macro 2                ; macro label,'name'
-  SECTION .data
-  %%link  dd %2, mlink, %1
-  %define mlink %%link
-  SECTION .text
-  %1:
-%endmacro
-
-; For inlining dictionary definitions when compiling. use directly following regular definition.
-%macro inline 1               ; inline 'name'
-  SECTION .data
-  %%link  dd %1, mlink, %%entry
-  %define mlink %%link
-  SECTION .text
-  %%entry:
-          mov esi,ldef
-          mov ecx,%%entry-ldef-1    ; ldef code lenth - ret
-          jmp doinline
-%endmacro
-
-; Lexical recognition entry
-;  lexical evaluation iterates over each lex entry until one returns its token. The iteration
-;  is hard coded, and the header entries are included only for reference.
-%define llink 0               ; last lex header
-%macro lex 2                  ; lex label, 'name' 
-  SECTION .data
-  %%link  dd %2, llink, %1
-  %define llink %%link
-  SECTION .text
-  %1:
-%endmacro
-  
+%include 'sysdefs.inc'
+%include 'dictionary.inc'  
 
 
       SECTION .data
@@ -169,122 +108,17 @@ interpret:
       jmp status
 
 
-
-; dictionary defaults
-
-
-lex lex_word,0                    ; default 
-      mov eax,[cwb]      ; return first 4 chars of current word in eax
-      ret
-
-
-
-def not_found,0          ; word not found
-      mov edx,[cwc]
-      mov ecx,cwb
-      mov [ecx+edx],byte '?'
-      mov [ecx+edx+1],byte lf
-      add edx,2
-      jmp report      ; should be quit" or error and reset interpreter
-
-
-macro compile,0      ; macro not found
-      mov edx,[context]
-      mov ebx,[edx]
-      call find
-      mov eax,[ebx+link_offset]
-      test eax,eax
-      jnz ccal
-      jmp [ebx+code_offset]  ; defer handling to context 
-
-ccal: mov edi,[cdp]              ; compile call
-      mov [edi],byte 0xE8        ; call opcode
-      inc edi
-      mov eax,[ebx+code_offset] 
-      sub eax,4                     
-      sub eax,edi
-      stosd
-      mov [cdp],edi
-      ret
-
-; numeric input - literals
-
-lex lex_lit,'lit'
-      mov esi,cwb
-      mov ecx,[cwc]
-.digit:
-      lodsb
-      or al,7
-      cmp al,0x37
-      jnz lex_word
-      dec ecx
-      jnz .digit
-      mov eax,'lit'
-      ret
-
-def lit,'lit'
-      ;dup
-      xor edx,edx
-      mov esi,cwb
-      mov ecx,[cwc]
-.digit:
-      lodsb
-      and al,7
-      shl edx,3
-      or dl,al
-      dec ecx
-      jnz .digit
-      mov eax,edx   ; result
-      ret
-
-
-macro dolit,'lit'
-       mov edi,[cdp]
-                         ; dup,
-       mov al,0xB8       ; mov eax,n
-       stosb
-       call lit
-       stosd
-       mov [cdp],edi
-       ret
-
-
-; definitions
-
-
-def define,'['
-      call name
-      mov eax,[cwb]      ; return first 4 chars of current word in eax
-      mov ebx,[ddp]      ; compile definition header
-      mov [ebx+name_offset],eax      ; name new definition
-
-      mov edx,[current]  ; update current definitions
-      mov eax,[edx]
-      mov [edx],ebx
-      mov [ebx+link_offset],eax    ; and link
-
-      mov eax,[cdp]      ; code pointer
-      mov [ebx+code_offset],eax
-      
-      add ebx,data_offset
-      mov [ddp],ebx
-
-      mov eax,[macros]        ; switch to macros for compiling
-      mov [dictionary],eax
-      ret
-
-macro enddef,']'
-      mov edx,[context]        ; switch back to context definitions for interpreting
-      mov ebx,[edx]
-      mov [dictionary],ebx
-      ret
-
-
 def quit,'quit'
       mov ebx,0
       mov eax,sys_exit
       int 0x80
 
+
+      %include 'literals.inc'
+      %include 'core.inc'
+
+
+; tie up dictionary chains
 
       SECTION .data
 definitions: dd dlink
