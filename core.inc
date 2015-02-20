@@ -8,19 +8,18 @@ def define,'['
       call name
       mov ebp,[ddp]
       mov eax,[ebp+pad_offset]      ; return first 4 chars of current word in eax
-      mov ebx,[ddp]      ; compile definition header
-      mov [ebx+name_offset],eax      ; name new definition
+      mov [ebp+name_offset],eax      ; name new definition
 
       mov edx,[current]  ; update current definitions
       mov eax,[edx]
       mov [edx],ebx
-      mov [ebx+link_offset],eax    ; and link
+      mov [ebp+link_offset],eax    ; and link
 
       mov eax,[cdp]      ; code pointer
-      mov [ebx+code_offset],eax
+      mov [ebp+code_offset],eax
       
-      add ebx,data_offset
-      mov [ddp],ebx
+      lea ebp,[ebp+data_offset]    ; advance ddp
+      mov [ddp],ebp
 
       mov eax,[macros]        ; switch to macros for compiling
       mov [dictionary],eax
