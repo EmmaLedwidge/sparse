@@ -59,14 +59,16 @@
 
 
 lex lex_word,0                    ; default 
-      mov eax,[cwb]      ; return first 4 chars of current word in eax
+      mov ebp,[ddp]
+      mov eax,[ebp+pad_offset]      ; return first 4 chars of current word in eax
       ret
 
 
 
 def not_found,0          ; word not found
       mov edx,[cwc]
-      mov ecx,cwb
+      mov ebp,[ddp]
+      lea ecx,[ebp+pad_offset]
       mov [ecx+edx],byte '?'
       mov [ecx+edx+1],byte lf
       add edx,2

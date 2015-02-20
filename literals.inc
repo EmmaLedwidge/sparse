@@ -6,7 +6,8 @@
 ; numeric input - literals
 
 lex lex_lit,'lit'
-      mov esi,cwb
+      mov ebp,[ddp]
+      lea esi,[ebp+pad_offset]
       mov ecx,[cwc]
 .digit:
       lodsb
@@ -22,7 +23,8 @@ lex lex_lit,'lit'
 def lit,'lit'
       ;dup
       xor edx,edx
-      mov esi,cwb
+      mov ebp,[ddp]
+      lea esi,[ebp+pad_offset]
       mov ecx,[cwc]
 .digit:
       lodsb

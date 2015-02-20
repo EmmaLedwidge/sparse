@@ -23,4 +23,5 @@
 %define code_offset 8
 %define data_offset 12
 
+%define pad_offset 100
 

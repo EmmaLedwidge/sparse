@@ -20,9 +20,8 @@ ddp:  dd dspace
 
       SECTION .bss
 cwc:  resd 1          ; current word count and buffer
-cwb:  resb 10
 cspace: resb 100
-dspace: resb 100
+dspace: resb 1000     ; include space for pad at +100
 
       SECTION .text
       global _start
@@ -40,7 +39,8 @@ getc: xor eax,eax      ; read one char from (blocking) input buffer
 
 
 name: xor eax,eax      ; read one word from input
-      mov [cwb],eax
+      mov ebp,[ddp]
+      mov [ebp+pad_offset],eax
       mov [cwc],eax
 
 skip: call getc         ; skip leading spaces and ctrl chars
@@ -48,7 +48,7 @@ skip: call getc         ; skip leading spaces and ctrl chars
       jle skip
 
 scan: mov ecx,[cwc]     ; copy printable chars into current word buffer
-      mov [cwb+ecx],al
+      mov [ebp+ecx+pad_offset],al
       inc ecx
       mov [cwc],ecx
       call getc
@@ -86,7 +86,8 @@ report:
 
 interpret:
       xor eax,eax
-      mov [cwb],eax     ; reset cw
+      mov ebp,[ddp]
+      mov [ebp+pad_offset],eax     ; reset cw
       mov [cwc],eax
 .skip:              ; based on word except we break at eol to report status ok
       call getc

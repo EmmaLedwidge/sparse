@@ -6,7 +6,8 @@
 
 def define,'['
       call name
-      mov eax,[cwb]      ; return first 4 chars of current word in eax
+      mov ebp,[ddp]
+      mov eax,[ebp+pad_offset]      ; return first 4 chars of current word in eax
       mov ebx,[ddp]      ; compile definition header
       mov [ebx+name_offset],eax      ; name new definition
 
