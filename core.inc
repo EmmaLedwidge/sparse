@@ -12,7 +12,7 @@ def define,'['
 
       mov edx,[current]  ; update current definitions
       mov eax,[edx]
-      mov [edx],ebx
+      mov [edx],ebp
       mov [ebp+link_offset],eax    ; and link
 
       mov eax,[cdp]      ; code pointer
