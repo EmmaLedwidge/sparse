@@ -58,17 +58,17 @@
 ; dictionary defaults
 
 
-lex lex_word,0                    ; default 
+lex lex_word,0                ; default 
       mov ebp,[ddp]
-      mov eax,[ebp+pad_offset]      ; return first 4 chars of current word in eax
+      mov eax,[ebp+pad]       ; return first 4 chars of current word in eax
       ret
 
 
 
-def not_found,0          ; word not found
+def not_found,0               ; word not found
       mov edx,[cwc]
       mov ebp,[ddp]
-      lea ecx,[ebp+pad_offset]
+      lea ecx,[ebp+pad]
       mov [ecx+edx],byte '?'
       mov [ecx+edx+1],byte lf
       add edx,2
@@ -79,15 +79,15 @@ macro compile,0      ; macro not found
       mov edx,[context]
       mov ebx,[edx]
       call find
-      mov eax,[ebx+link_offset]
+      mov eax,[ebx+de.link]
       test eax,eax
       jnz ccal
-      jmp [ebx+code_offset]  ; defer handling to context 
+      jmp [ebx+de.code]  ; defer handling to context 
 
 ccal: mov edi,[cdp]              ; compile call
       mov [edi],byte 0xE8        ; call opcode
       inc edi
-      mov eax,[ebx+code_offset] 
+      mov eax,[ebx+de.code] 
       sub eax,4                     
       sub eax,edi
       stosd

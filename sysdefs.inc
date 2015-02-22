@@ -18,10 +18,10 @@
 
 ; header fields
 
-%define name_offset 0
-%define link_offset 4
-%define code_offset 8
-%define data_offset 12
+%define de.name 0
+%define de.link 4
+%define de.code 8
+%define de.data 12
 
-%define pad_offset 100
+%define pad 100    
 

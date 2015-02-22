@@ -15,7 +15,7 @@ ok:   dd okc
 okt:  db "ok",lf
 okc  equ $-okt
 overide: dd 4
-         db "...",lf
+         db "... "
 
 status: dd ok
 lc:   db lf
@@ -46,7 +46,7 @@ getc: xor eax,eax      ; read one char from (blocking) input buffer
 def name,'word'                  ; ( -- n ; M=addr )
       xor eax,eax                ; zero word buffer
       mov ebp,[ddp]
-      mov [ebp+pad_offset],eax
+      mov [ebp+pad],eax
       mov [cwc],eax
 .entry:
       mov al,[lc]
@@ -78,7 +78,7 @@ def name,'word'                  ; ( -- n ; M=addr )
       jle .sop
 .sot:                            ; start of text
       mov ecx,[cwc]              ; append char
-      mov [ebp+ecx+pad_offset],al
+      mov [ebp+ecx+pad],al
       inc ecx
       mov [cwc],ecx
       call getc
@@ -88,16 +88,16 @@ def name,'word'                  ; ( -- n ; M=addr )
       mov [lc],al                ; save last char 
       mov edi,ok                 ; restore from overide
       mov [status],edi
-      lea edi,[ebp+pad_offset]   ; M:addr
+      lea edi,[ebp+pad]          ; M:addr
       mov eax,ecx                ; len
       ret
 
 
-find: cmp [ebx+link_offset],dword 0     ;execute default entry
+find: cmp [ebx+de.link],dword 0     ;execute default entry
       jz found
-      cmp eax,[ebx+name_offset]   ; or matched entry
+      cmp eax,[ebx+de.name]   ; or matched entry
       jz found
-      mov ebx,[ebx+link_offset]
+      mov ebx,[ebx+de.link]
       jmp find
 found: 
       ret
@@ -118,10 +118,10 @@ report:
 interpret:
       call name
       mov ebx,[lexers]            ; evaluate / get token
-      call [ebx+code_offset]   ; eax = token
+      call [ebx+de.code]   ; eax = token
       mov ebx,[dictionary]         ; search macros or context dictionary
       call find
-      call [ebx+code_offset]   ; execute
+      call [ebx+de.code]   ; execute
       jmp interpret
 
 def quit,'quit'

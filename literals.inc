@@ -7,7 +7,7 @@
 
 lex lex_lit,'lit'
       mov ebp,[ddp]
-      lea esi,[ebp+pad_offset]
+      lea esi,[ebp+pad]
       mov ecx,[cwc]
 .digit:
       lodsb
@@ -24,7 +24,7 @@ def lit,'lit'
       ;dup
       xor edx,edx
       mov ebp,[ddp]
-      lea esi,[ebp+pad_offset]
+      lea esi,[ebp+pad]
       mov ecx,[cwc]
 .digit:
       lodsb
