@@ -5,9 +5,11 @@
 
 
 def define,'['
+      mov eax,overide
+      mov [status],eax
       call name
       mov ebp,[ddp]
-      mov eax,[ebp+pad_offset]      ; return first 4 chars of current word in eax
+      mov eax,[edi]                 ; get first 4 chars of current word in eax
       mov [ebp+name_offset],eax      ; name new definition
 
       mov edx,[current]  ; update current definitions

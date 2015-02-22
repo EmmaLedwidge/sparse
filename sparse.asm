@@ -11,9 +11,14 @@
       SECTION .data
 msg:  db "SPF testbed",lf
 msgc:  equ $-msg
-ok:   db "ok",lf
-okc:  equ $-ok
-lc:   db 0
+ok:   dd okc
+okt:  db "ok",lf
+okc  equ $-okt
+overide: dd 4
+         db "...",lf
+
+status: dd ok
+lc:   db lf
 
 cdp:  dd cspace
 ddp:  dd dspace
@@ -38,24 +43,53 @@ getc: xor eax,eax      ; read one char from (blocking) input buffer
       ret
 
 
-name: xor eax,eax      ; read one word from input
+def name,'word'                  ; ( -- n ; M=addr )
+      xor eax,eax                ; zero word buffer
       mov ebp,[ddp]
       mov [ebp+pad_offset],eax
       mov [cwc],eax
-
-skip: call getc         ; skip leading spaces and ctrl chars
+.entry:
+      mov al,[lc]
+      cmp al,lf
+      jz .stat
+      jmp .sop
+.stat:
+      mov edi,[status]           ; string constant
+      test edi,edi
+      jz .restat
+      mov edx,[edi]              ; len
+      lea ecx,[edi+4]
+      mov ebx,std_out
+      mov eax,sys_write
+      int 0x80
+.restat:
+      mov edi,ok
+      mov [status],edi
+.sol:                            ; start of line
+      call getc
       cmp al,ws
-      jle skip
-
-scan: mov ecx,[cwc]     ; copy printable chars into current word buffer
+      jle .sol                   ; suppressing status (DRY)
+      jmp .sot
+.sop:                            ; start of parse
+      call getc                  ; skip leading spaces and ctrl chars
+      cmp al,lf
+      jz .stat
+      cmp al,ws
+      jle .sop
+.sot:                            ; start of text
+      mov ecx,[cwc]              ; append char
       mov [ebp+ecx+pad_offset],al
       inc ecx
       mov [cwc],ecx
       call getc
       cmp al,ws
-      jnle scan
-
-      mov [lc],al        ; save eolf at end of line for interpreter
+      jnle .sot
+.eot:                            ; end of text
+      mov [lc],al                ; save last char 
+      mov edi,ok                 ; restore from overide
+      mov [status],edi
+      lea edi,[ebp+pad_offset]   ; M:addr
+      mov eax,ecx                ; len
       ret
 
 
@@ -74,40 +108,21 @@ found:
 _start:
       mov edx,msgc
       mov ecx,msg
-      jmp report
-
-status:
-      mov edx,okc      ; type 'ok'
-      mov ecx,ok
 report:
       mov ebx,std_out
       mov eax,sys_write
       int 0x80
-
+      
+      xor eax,eax              ; supress status
+      mov [status],eax
 interpret:
-      xor eax,eax
-      mov ebp,[ddp]
-      mov [ebp+pad_offset],eax     ; reset cw
-      mov [cwc],eax
-.skip:              ; based on word except we break at eol to report status ok
-      call getc
-      cmp al,lf
-      jz status
-      cmp al,ws
-      jle .skip
-      call scan
-
+      call name
       mov ebx,[lexers]            ; evaluate / get token
       call [ebx+code_offset]   ; eax = token
       mov ebx,[dictionary]         ; search macros or context dictionary
       call find
       call [ebx+code_offset]   ; execute
-
-      mov al,[lc]     ; test for saved eol
-      cmp al,lf
-      jnz interpret
-      jmp status
-
+      jmp interpret
 
 def quit,'quit'
       mov ebx,0
