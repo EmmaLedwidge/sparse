@@ -132,6 +132,7 @@ def bye,'bye'
 
 
       %include 'literals.inc'
+      %include 'output.inc'
       %include 'core.inc'
 
 
