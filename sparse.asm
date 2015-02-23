@@ -106,7 +106,8 @@ found:
 
 
 _start:
-      mov edx,msgc
+      lea esi,[esp-100]       ; init data stack
+      mov edx,msgc            ; startup message
       mov ecx,msg
 report:
       mov ebx,std_out
