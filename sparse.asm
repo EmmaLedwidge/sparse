@@ -124,7 +124,8 @@ interpret:
       call [ebx+de.code]   ; execute
       jmp interpret
 
-def quit,'quit'
+
+def bye,'bye'
       mov ebx,0
       mov eax,sys_exit
       int 0x80
