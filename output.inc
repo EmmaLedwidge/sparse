@@ -4,7 +4,7 @@
 
 ; numeric output
 
-def dot,'.'              ; / n -- ; out:string /
+def dot,'.'              ; < n -- > out:string 
       xor edx,edx        ; digit
       mov ebp,[ddp]
       lea ecx,[ebp+pad]  ; string addr
@@ -24,6 +24,6 @@ def dot,'.'              ; / n -- ; out:string /
 
       xor eax,eax        ; supress status
       mov [status],eax
-      ; drop
+      _drop
       ret
 

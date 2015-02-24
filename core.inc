@@ -5,26 +5,27 @@
 
 
 def define,'['
-      mov eax,overide
-      mov [status],eax
+      mov edx,overide
+      mov [status],edx
       call name
+      mov eax,[edi]              ; get first 4 chars of current word in eax
       mov ebp,[ddp]
-      mov eax,[edi]                 ; get first 4 chars of current word in eax
       mov [ebp+de.name],eax      ; name new definition
 
-      mov edx,[current]  ; update current definitions
+      mov edx,[current]          ; update current definitions
       mov eax,[edx]
       mov [edx],ebp
-      mov [ebp+de.link],eax    ; and link
+      mov [ebp+de.link],eax      ; and link
 
-      mov eax,[cdp]      ; code pointer
+      mov eax,[cdp]              ; code pointer
       mov [ebp+de.code],eax
       
-      lea ebp,[ebp+de.data]    ; advance ddp
+      lea ebp,[ebp+de.data]      ; advance ddp
       mov [ddp],ebp
 
-      mov eax,[macros]        ; switch to macros for compiling
+      mov eax,[macros]           ; switch to macros for compiling
       mov [dictionary],eax
+      _drop
       ret
 
 macro enddef,']'

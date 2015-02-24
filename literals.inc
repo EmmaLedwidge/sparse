@@ -7,10 +7,11 @@
 
 lex lex_lit,'lit'
       mov ebp,[ddp]
-      lea esi,[ebp+pad]
+      lea ebx,[ebp+pad]
       mov ecx,[cwc]
 .digit:
-      lodsb
+      mov al,[ebx]
+      inc ebx
       or al,7
       cmp al,0x37
       jnz lex_word
@@ -21,7 +22,8 @@ lex lex_lit,'lit'
 
 
 def lit,'lit'
-      ;dup
+      _dup
+      push esi
       xor edx,edx
       mov ebp,[ddp]
       lea esi,[ebp+pad]
@@ -34,17 +36,18 @@ def lit,'lit'
       dec ecx
       jnz .digit
       mov eax,edx   ; result
+      pop esi
       ret
 
 
 macro dolit,'lit'
        mov edi,[cdp]
-                         ; dup,
        mov al,0xB8       ; mov eax,n
        stosb
        call lit
        stosd
        mov [cdp],edi
+       _drop
        ret
 
 

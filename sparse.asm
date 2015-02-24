@@ -44,6 +44,7 @@ getc: xor eax,eax      ; read one char from (blocking) input buffer
 
 
 def name,'word'                  ; ( -- n ; M=addr )
+      _dup
       xor eax,eax                ; zero word buffer
       mov ebp,[ddp]
       mov [ebp+pad],eax
@@ -100,6 +101,7 @@ find: cmp [ebx+de.link],dword 0     ;execute default entry
       mov ebx,[ebx+de.link]
       jmp find
 found: 
+      _drop
       ret
 
 
@@ -118,11 +120,11 @@ report:
       mov [status],eax
 interpret:
       call name
-      mov ebx,[lexers]            ; evaluate / get token
-      call [ebx+de.code]   ; eax = token
-      mov ebx,[dictionary]         ; search macros or context dictionary
+      mov ebx,[lexers]         ; evaluate / get token
+      call [ebx+de.code]       ; eax = token
+      mov ebx,[dictionary]     ; search macros or context dictionary
       call find
-      call [ebx+de.code]   ; execute
+      call [ebx+de.code]       ; execute
       jmp interpret
 
 

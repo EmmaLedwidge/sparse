@@ -75,23 +75,21 @@ def not_found,0               ; word not found
       jmp report      ; should be quit" or error and reset interpreter
 
 
-macro compile,0      ; macro not found
+macro compile,0                 ; macro not found
       mov edx,[context]
       mov ebx,[edx]
       call find
-      mov eax,[ebx+de.link]
-      test eax,eax
-      jnz ccal
-      jmp [ebx+de.code]  ; defer handling to context 
-
-ccal: mov edi,[cdp]              ; compile call
-      mov [edi],byte 0xE8        ; call opcode
-      inc edi
-      mov eax,[ebx+de.code] 
-      sub eax,4                     
-      sub eax,edi
-      stosd
-      mov [cdp],edi
+      mov edx,[ebx+de.link]
+      test edx,edx
+      jnz .ccall
+      jmp [ebx+de.code]          ; defer handling to context 
+.ccall:
+      mov ebp,[cdp]              ; compile call
+      mov [ebp],byte 0xE8        ; call opcode
+      lea ebp,[ebp+5]
+      mov [cdp],ebp
+      mov edx,[ebx+de.code]
+      sub edx,ebp
+      mov [ebp-4],edx
       ret
-
 
