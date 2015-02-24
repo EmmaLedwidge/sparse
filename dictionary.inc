@@ -78,6 +78,7 @@ def not_found,0               ; word not found
 macro compile,0                 ; macro not found
       mov edx,[context]
       mov ebx,[edx]
+      call lex_word             ; fix token because find clobered eax
       call find
       mov edx,[ebx+de.link]
       test edx,edx
