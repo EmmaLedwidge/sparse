@@ -1,11 +1,9 @@
 ;  dictionary.inc - sparse.asm
 ;
-;  defines macros to construct headers for the dictionaries,
-; and initialise them with their defaults
-
-; Header macros 
+;  macros to construct dictionary headers
+; 
 ; parameters: label defines code space address of routine, for nasm code reference
-;             'name' defines the 32bit string constant token for Sparse code reference
+;             'name' defines the 32bit string constant token
 
 ; For regular dictionary definitions
 %define dlink 0              ; last dictionary header in data space
@@ -53,44 +51,4 @@
 %endmacro
   
 
-
-
-; dictionary defaults
-
-
-lex lex_word,0                ; default 
-      mov ebp,[ddp]
-      mov eax,[ebp+pad]       ; return first 4 chars of current word in eax
-      ret
-
-
-
-def not_found,0               ; word not found
-      mov edx,[cwc]
-      mov ebp,[ddp]
-      lea ecx,[ebp+pad]
-      mov [ecx+edx],byte '?'
-      mov [ecx+edx+1],byte lf
-      add edx,2
-      jmp report      ; should be quit" or error and reset interpreter
-
-
-macro compile,0                 ; macro not found
-      mov edx,[context]
-      mov ebx,[edx]
-      call lex_word             ; fix token because find clobered eax
-      call find
-      mov edx,[ebx+de.link]
-      test edx,edx
-      jnz .ccall
-      jmp [ebx+de.code]          ; defer handling to context 
-.ccall:
-      mov ebp,[cdp]              ; compile call
-      mov [ebp],byte 0xE8        ; call opcode
-      lea ebp,[ebp+5]
-      mov [cdp],ebp
-      mov edx,[ebx+de.code]
-      sub edx,ebp
-      mov [ebp-4],edx
-      ret
 

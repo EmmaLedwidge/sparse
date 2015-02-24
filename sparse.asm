@@ -5,7 +5,8 @@
 ; run:        ./sparse
 
 %include 'sysdefs.inc'
-%include 'dictionary.inc'  
+%include 'dictionary.inc'
+%include 'defaults.inc' 
 
       SECTION .data
 msg:  db "SPF testbed",lf
@@ -132,8 +133,38 @@ def bye,'bye'
       mov eax,sys_exit
       int 0x80
 
+def define,'['
+      mov edx,overide
+      mov [status],edx
+      call name
+      mov eax,[edi]              ; get first 4 chars of current word in eax
+      mov ebp,[ddp]
+      mov [ebp+de.name],eax      ; name new definition
 
-      %include 'literals.inc'
+      mov edx,[current]          ; update current definitions
+      mov eax,[edx]
+      mov [edx],ebp
+      mov [ebp+de.link],eax      ; and link
+
+      mov eax,[cdp]              ; code pointer
+      mov [ebp+de.code],eax
+      
+      lea ebp,[ebp+de.data]      ; advance ddp
+      mov [ddp],ebp
+
+      mov eax,[macros]           ; switch to macros for compiling
+      mov [dictionary],eax
+      _drop
+      ret
+
+macro enddef,']'
+      mov edx,[context]        ; switch back to context definitions for interpreting
+      mov ebx,[edx]
+      mov [dictionary],ebx
+      ret
+
+
+
       %include 'output.inc'
       %include 'core.inc'
 
