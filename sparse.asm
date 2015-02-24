@@ -7,7 +7,6 @@
 %include 'sysdefs.inc'
 %include 'dictionary.inc'  
 
-
       SECTION .data
 msg:  db "SPF testbed",lf
 msgc:  equ $-msg

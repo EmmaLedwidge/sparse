@@ -41,12 +41,13 @@ def lit,'lit'
 
 
 macro dolit,'lit'
-       mov edi,[cdp]
-       mov al,0xB8       ; mov eax,n
-       stosb
        call lit
-       stosd
-       mov [cdp],edi
+       mov ebp,[cdp]
+       mov [ebp],dword   0x89FC768D   ; lea esi,[esi-4]; mov
+       mov [ebp+4],word  0xB806       ; [esi],eax; mov eax,n
+       mov [ebp+6],eax
+       lea ebp,[ebp+10]
+       mov [cdp],ebp
        _drop
        ret
 
