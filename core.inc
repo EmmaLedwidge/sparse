@@ -14,12 +14,12 @@ macro return,';'
 def dup,'dup'
       _dup
       ret
-;inline 'dup'
+inline 'dup'
 
 
 def drop,'drop'
       _drop
       ret
-;inline 'drop'
+inline 'drop'
 
 
