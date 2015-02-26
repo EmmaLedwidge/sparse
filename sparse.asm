@@ -32,7 +32,9 @@ dspace: resb 1000     ; include space for pad at +100
       global _start
 
 
-getc: xor eax,eax      ; read one char from (blocking) input buffer
+; WIP preparing to properly define KEY
+key:  ;_dup
+      xor eax,eax      ; read one char from (blocking) input buffer
       push eax
       mov edx,1
       mov ecx,esp
@@ -47,7 +49,8 @@ def name,'word'                  ; ( -- n ; M=addr )
       _dup
       xor eax,eax                ; zero word buffer
       mov ebp,[ddp]
-      mov [ebp+pad],eax
+      lea edi,[ebp+pad]          ; edi = $addr
+      mov [edi],eax
       mov [cwc],eax
 .entry:
       mov al,[lc]
@@ -55,42 +58,42 @@ def name,'word'                  ; ( -- n ; M=addr )
       jz .stat
       jmp .sop
 .stat:
-      mov edi,[status]           ; string constant
-      test edi,edi
+      mov ebp,[status]           ; load string constant addr
+      test ebp,ebp
       jz .restat
-      mov edx,[edi]              ; len
-      lea ecx,[edi+4]
+      mov edx,[ebp]              ; len
+      lea ecx,[ebp+4]            ; string addr
       mov ebx,std_out
       mov eax,sys_write
       int 0x80
 .restat:
-      mov edi,ok
-      mov [status],edi
+      mov ebp,ok
+      mov [status],ebp
 .sol:                            ; start of line
-      call getc
+      call key
       cmp al,ws
-      jle .sol                   ; suppressing status (DRY)
+      jle .sol                   ; suppressing status if no text entered
       jmp .sot
 .sop:                            ; start of parse
-      call getc                  ; skip leading spaces and ctrl chars
+      call key                   ; skip leading spaces and ctrl chars
       cmp al,lf
       jz .stat
       cmp al,ws
       jle .sop
 .sot:                            ; start of text
-      mov ecx,[cwc]              ; append char
-      mov [ebp+ecx+pad],al
-      inc ecx
-      mov [cwc],ecx
-      call getc
+      mov ebp,edi                
+.nc:  stosb                      ; append char
+      call key
       cmp al,ws
-      jnle .sot
+      jnle .nc
 .eot:                            ; end of text
-      mov [lc],al                ; save last char 
-      mov edi,ok                 ; restore from overide
-      mov [status],edi
-      lea edi,[ebp+pad]          ; M:addr
-      mov eax,ecx                ; len
+      mov [lc],al                ; save last char (ws|lf)
+      mov eax,edi
+      sub eax,ebp                ; count
+      mov [cwc],eax
+      mov edi,ebp                ; M:caddr
+      mov ebp,ok                 ; restore from overide
+      mov [status],ebp
       ret
 
 
