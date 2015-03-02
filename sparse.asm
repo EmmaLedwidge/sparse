@@ -20,16 +20,55 @@ overide: dd 4
 status: dd ok
 lc:   db lf
 
+
 cdp:  dd cspace
 ddp:  dd dspace
 
+; startup parameters
+init:   dd warm
+dallot: dd 0x100000 ; 1Mb
+callot: dd 0x100000
+
       SECTION .bss
+; memory allocations
 cwc:  resd 1          ; current word count and buffer
-cspace: resb 100
-dspace: resb 1000     ; include space for pad at +100
+rsp0:   resd 1
+dsp0:   resd 1
+cspace: resd 1
+dspace: resd 1
 
       SECTION .text
       global _start
+
+_start:
+      ; reset defaults using command line options
+
+      xor ebx,ebx              ; allocate dspace
+      mov eax,sys_brk
+      int 0x80
+      mov [dspace],eax
+      mov [ddp],eax
+      add eax,[dallot]
+      mov ebx,eax
+      mov eax,sys_brk
+      int 0x80
+
+      xor ebx,ebx              ; allocate cspace 
+      mov edi,ebx
+      mov ebp,ebx
+      mov esi,0x22             ; map_private|map_anon
+      mov edx,7                ; prot_read|prot_write|prot_exec
+      mov ecx,[callot]
+      mov eax,sys_mmap2
+      int 0x80
+      mov [cspace],eax
+      mov [cdp],eax
+
+      mov esi,[dspace]         ; allocate data stack at top of dspace
+      add esi,[dallot]
+      mov [dsp0],esi
+      mov [rsp0],esp           ; save system stack for return stack
+      jmp [init]
 
 
 ; WIP preparing to properly define KEY
@@ -108,18 +147,18 @@ found:
       ret
 
 
-
-
-_start:
-      lea esi,[esp-100]       ; init data stack
+warm:
       mov edx,msgc            ; startup message
       mov ecx,msg
 report:
       mov ebx,std_out
       mov eax,sys_write
       int 0x80
-      
-      xor eax,eax              ; supress status
+abort:
+      mov esi,[dsp0]       ; init data stack
+quit:      
+      mov esp,[rsp0]
+      xor eax,eax              ; suppress status
       mov [status],eax
 interpret:
       call name
@@ -166,6 +205,35 @@ macro enddef,']'
       mov [dictionary],ebx
       ret
 
+def fetch_dsp,'dsp@'
+      _dup
+      mov eax,esi
+      ret
+
+def fetch_dsp0,'dsp0'
+      _dup
+      mov eax,[dsp0]
+      ret
+
+def fetch_rsp,'rsp@'
+      _dup
+      mov eax,esp
+      ret
+
+def fetch_rsp0,'rsp0'
+      _dup
+      mov eax,[rsp0]
+      ret
+
+def fetch_ddp,'ddp@' ; aka here
+      _dup
+      mov eax,[ddp]
+      ret
+
+def fetch_cdp,'cdp@'
+      _dup
+      mov eax,[cdp]
+      ret
 
 
       %include 'output.inc'

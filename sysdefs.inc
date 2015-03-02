@@ -8,7 +8,8 @@
 %define sys_exit 1
 %define sys_read 3
 %define sys_write 4
-
+%define sys_brk 45
+%define sys_mmap2 192
 
 ; useful constants
 
